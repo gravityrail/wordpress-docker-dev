@@ -14,7 +14,7 @@ I use this image with [Docker Compose](https://docs.docker.com/compose/), thusly
 
 1. Save the following in a repo somewhere as docker-compose.yml:
 
-'''yaml
+```yaml
 wordpress:
   image: gravityrail/wordpress
   volumes:
@@ -28,7 +28,7 @@ db:
   image: mariadb
   environment:
     MYSQL_ROOT_PASSWORD: example
-'''
+```
 
 2. Create a directory call "src" in the same directory as docker-compose.yml
 
