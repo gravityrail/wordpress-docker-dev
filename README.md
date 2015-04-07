@@ -48,6 +48,11 @@ You can run the "[wp](http://wp-cli.org/)" cli command as long as you include th
 docker-compose run wordpress wp --allow-root plugin install hello-dolly
 ```
 
+Or, if you want to create a new plugin, try this:
+
+```bash
+docker-compose run wordpress wp --allow-root scaffold plugin my_super_plugin --plugin_name="My Super Plugin" 
+```
 
 
 ## Credits
