@@ -1,12 +1,7 @@
-FROM php:5.6-apache
-
-RUN a2enmod rewrite
+FROM debian:jessie
 
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y libpng12-dev libjpeg-dev wget php5-cli php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* \
-	&& docker-php-ext-configure gd --with-png-dir=/usr --with-jpeg-dir=/usr \
-	&& docker-php-ext-install gd
-RUN docker-php-ext-install mysqli
+RUN apt-get update && apt-get install -y curl libpng12-dev libjpeg-dev wget php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
 
 # install wp-cli
 RUN wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_0.17.1_all.deb
@@ -31,6 +26,8 @@ RUN curl -o wordpress.tar.gz -SL https://wordpress.org/wordpress-${WORDPRESS_UPS
 
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY config.yml /root/.wp-cli/
+
+WORKDIR /var/www/html
 
 # grr, ENTRYPOINT resets CMD now
 ENTRYPOINT ["/entrypoint.sh"]
