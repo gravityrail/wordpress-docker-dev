@@ -48,18 +48,32 @@ You can run the "[wp](http://wp-cli.org/)" cli command as long as you include th
 docker-compose run wordpress wp --allow-root plugin install hello-dolly
 ```
 
-Or, if you want to create a new plugin, try this:
+Nice, but noisy. On my own system (OS X, but this would work in Linux too), I created a wrapper for this using `alias` in my `~/.profile`:
 
 ```bash
-docker-compose run wordpress wp --allow-root scaffold plugin my_super_plugin --plugin_name="My Super Plugin" 
+alias docker-wp='docker-compose run wordpress wp --allow-root'
 ```
+
+Which turns the above command into:
+
+```bash
+docker-wp plugin install hello-dolly
+```
+
+Another example - let's create a new plugin!
+
+```bash
+docker-wp scaffold plugin my_super_plugin --plugin_name="My Super Plugin" 
+```
+
+AWESOMESAUCE.
 
 ## Enable MultiSite
 
 The magical, wp-cli way:
 
 ```bash
-docker-compose run wordpress wp --allow-root core multisite-convert --title="My Blog Network"
+docker-wp core multisite-convert --title="My Blog Network"
 ```
 
 ----
