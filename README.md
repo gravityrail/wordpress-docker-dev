@@ -70,7 +70,7 @@ AWESOMESAUCE.
 
 ## Enable MultiSite
 
-The magical, wp-cli way:
+The magical, [wp-cli](http://wp-cli.org/commands/core/multisite-convert/) way:
 
 ```bash
 docker-wp core multisite-convert --title="My Blog Network"
