@@ -1,4 +1,4 @@
-# Wordpress Docker images for Plugin and Theme Development
+# Wordpress Docker images for Plugin, Theme and MultiSite Development
 
 This image is intended for *local development only*. It runs Nginx and PHP-FPM as the *root user* so that Docker volumes mounted at /var/www/html can be written by the server processes.
 
