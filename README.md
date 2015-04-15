@@ -40,7 +40,7 @@ db:
 
 You can now install themes and plugins and mess with WordPress as much as you like!
 
-*Bonus Points*
+## Scripting the container with wp-cli
 
 You can run the "[wp](http://wp-cli.org/)" cli command as long as you include the "--allow-root" option, for example:
 
@@ -54,8 +54,19 @@ Or, if you want to create a new plugin, try this:
 docker-compose run wordpress wp --allow-root scaffold plugin my_super_plugin --plugin_name="My Super Plugin" 
 ```
 
-*More bonus points*
-To begin installing multi-site, add this line above the line `/* That's all, stop editing! Happy blogging. */` in wp-config.php:
+## Enable MultiSite
+
+The magical, wp-cli way:
+
+```bash
+docker-compose run wordpress wp --allow-root core multisite-convert --title="My Blog Network"
+```
+
+----
+
+The boring old manual way:
+
+Add this line above the line `/* That's all, stop editing! Happy blogging. */` in wp-config.php:
 
 ```php
 define( 'WP_ALLOW_MULTISITE', true );
