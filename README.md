@@ -74,17 +74,7 @@ The magical, [wp-cli](http://wp-cli.org/commands/core/multisite-convert/) way:
 docker-wp core multisite-convert --title="My Blog Network"
 ```
 
-----
-
-The boring old manual way:
-
-Add this line above the line `/* That's all, stop editing! Happy blogging. */` in wp-config.php:
-
-```php
-define( 'WP_ALLOW_MULTISITE', true );
-```
-
-Then continue through the installation as normal, and head to "Tools -> Network Setup", and follow all the instructions except those describing .htaccess and Rewrite (those are Apache features, and this image is preconfigured for MultiSite using Nginx). One caveat is that I use "folder" rather than "subdomain" MultiSite, for ease of use. I leave the necessary DNS shenanigans for local subdomain development as an exercise for the reader :simple_smile:
+One caveat of the configuration is that I use "folder" rather than "subdomain" MultiSite, for ease of use. I leave the necessary DNS shenanigans for local subdomain development as an exercise for the reader :simple_smile:
 
 ## Credits
 
