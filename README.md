@@ -34,9 +34,7 @@ db:
 
 3. Run `docker-compose up`. This will boot the WordPress and MariaDB docker images, install WordPress to your "src" directory, and run the server process.
 
-4. *OS X only*: run `boot2docker ip` to find out the IP address of your Docker server.
-
-5. In your web browser, open http://(localhost or docker IP):8080. Congratulations, you should see a WordPress install screen!
+4. run `open "http://$(boot2docker ip):8080"`, and install (for Linux, YMMV)
 
 You can now install themes and plugins and mess with WordPress as much as you like!
 
