@@ -8,7 +8,7 @@ RUN ln -sf /bin/true /sbin/initctl
 ENV DEBIAN_FRONTEND noninteractive
 
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y curl vim libpng12-dev libjpeg-dev wget unzip nginx php5-fpm php-apc python-setuptools php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get install -y curl vim libpng12-dev libjpeg-dev wget unzip nginx php5-fpm php5-curl php-apc python-setuptools php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
 
 # nginx config
 RUN sed -i -e"s/keepalive_timeout\s*65/keepalive_timeout 2/" /etc/nginx/nginx.conf
@@ -45,9 +45,9 @@ RUN git clone https://github.com/wp-cli/server-command.git ~/.wp-cli/commands/se
 
 VOLUME /var/www/html
 
-ENV WORDPRESS_VERSION 4.1.1
-ENV WORDPRESS_UPSTREAM_VERSION 4.1.1
-ENV WORDPRESS_SHA1 15d38fe6c73121a20e63ccd8070153b89b2de6a9
+ENV WORDPRESS_VERSION 4.2.1
+ENV WORDPRESS_UPSTREAM_VERSION 4.2.1
+ENV WORDPRESS_SHA1 c93a39be9911591b19a94743014be3585df0512f
 
 # upstream tarballs include ./wordpress/ so this gives us /usr/src/wordpress
 RUN curl -o wordpress.tar.gz -SL https://wordpress.org/wordpress-${WORDPRESS_UPSTREAM_VERSION}.tar.gz \
