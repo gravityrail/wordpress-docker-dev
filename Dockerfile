@@ -24,6 +24,7 @@ RUN apt-get update \
     	nginx \
     	sendmail \
     	curl \
+    	vim \
         autoconf2.13 \
         libbz2-dev \
         libcurl4-openssl-dev \
@@ -51,7 +52,8 @@ WORKDIR /tmp/php-5.2.16
 # Apply patches
 RUN patch -p1 -i ../php-5.2.16-fpm-0.5.14.diff && \
     patch -p1 -i ../suhosin-patch-5.2.16-0.9.7.patch && \
-    patch -p0 -i ../libxml29_compat.patch
+    patch -p0 -i ../libxml29_compat.patch && \
+    patch -p1 -i ../debian_patches_disable_SSLv2_for_openssl_1_0_0.patch
 
 # Configure
 RUN ./buildconf --force
@@ -79,6 +81,9 @@ RUN chmod a+x ./libevent/configure ./libevent/depcomp ./libevent/install-sh ./li
     --with-png-dir \
     --with-zlib \
     --without-sqlite
+
+# patch to add -lcrypto
+RUN sed -i '/EXTRA_LIBS = /s|$| -lssl -lcrypto|' Makefile
 
 # Install
 RUN make && make install
