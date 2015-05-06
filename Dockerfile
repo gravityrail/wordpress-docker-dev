@@ -8,7 +8,7 @@ RUN ln -sf /bin/true /sbin/initctl
 ENV DEBIAN_FRONTEND noninteractive
 
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y curl vim libpng12-dev libjpeg-dev wget unzip nginx php5-fpm php5-curl php-apc python-setuptools php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get install -y curl sendmail vim-common vim-runtime libpng12-dev libjpeg-dev wget unzip nginx php5-fpm php5-curl php-apc python-setuptools php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
 
 # nginx config
 RUN sed -i -e"s/keepalive_timeout\s*65/keepalive_timeout 2/" /etc/nginx/nginx.conf
