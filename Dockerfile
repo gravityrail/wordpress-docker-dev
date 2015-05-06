@@ -7,8 +7,90 @@ RUN ln -sf /bin/true /sbin/initctl
 # Let the conatiner know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
 
+# import Lenny key
+# RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4D270D06F42584E6
+
+# Pin PHP to version 5.2 (from Lenny)
+# ADD ./apt-lenny.list /etc/apt/sources.list.d/apt-lenny.list
+# ADD ./lenny-php52 /etc/apt/preferences.d/lenny-php52
+
 # install the PHP extensions we need
-RUN apt-get update && apt-get install -y curl sendmail vim-common vim-runtime libpng12-dev libjpeg-dev wget unzip nginx php5-fpm php5-curl php-apc python-setuptools php5-cli php5-gd php5-mysql php5-oauth mysql-client git-core && rm -rf /var/lib/apt/lists/* 
+
+
+# RUN apt-get update && apt-get install -f -y curl sendmail vim-common vim-runtime libpng12-dev libjpeg-dev wget unzip nginx python-setuptools mysql-client git-core libxml2 gcc libxml2-dev libevent-dev patch libcurl4-openssl-dev libbz2-dev libjpeg-dev libpng12-dev libxpm-dev libfreetype6-dev libmcrypt-dev libmhash-dev libmysqlclient-dev libpspell-dev libexpat1-dev libxslt1-dev make && rm -rf /var/lib/apt/lists/* 
+
+RUN apt-get update \
+    && apt-get install -y \
+    	nginx \
+    	sendmail \
+    	curl \
+        autoconf2.13 \
+        libbz2-dev \
+        libcurl4-openssl-dev \
+        libltdl-dev \
+        libmcrypt-dev \
+        libevent-dev \
+        libmhash-dev \
+        libmysqlclient-dev \
+        libssl-dev \
+        libpcre3-dev \
+        libpng12-dev \
+        libxml2-dev \
+        pkg-config \
+        make \
+        patch \
+        xmlstarlet \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD src/ /tmp
+# WORKDIR /tmp
+RUN gunzip /tmp/*.gz && tar xf /tmp/php-5.2.16.tar -C /tmp
+WORKDIR /tmp/php-5.2.16
+
+# Apply patches
+RUN patch -p1 -i ../php-5.2.16-fpm-0.5.14.diff && \
+    patch -p1 -i ../suhosin-patch-5.2.16-0.9.7.patch && \
+    patch -p0 -i ../libxml29_compat.patch
+
+# Configure
+RUN ./buildconf --force
+
+RUN chmod a+x ./libevent/configure ./libevent/depcomp ./libevent/install-sh ./libevent/missing && ./configure \
+    --enable-fastcgi \
+    --enable-fpm \
+    --enable-mbstring \
+    --enable-sockets \
+    --with-config-file-path=/etc/php5 \
+    --with-curl \
+    --with-fpm-conf=/etc/php5/php-fpm.conf \
+    --with-fpm-log=/var/log/php/php_errors.log \
+    --with-fpm-pid=/var/run/php/php-fpm.pid \
+    --with-gd \
+    --with-gettext \
+    --with-libdir=lib/x86_64-linux-gnu \
+    --with-mcrypt \
+    --with-mhash \
+    --with-mysql \
+    --with-mysql-sock \
+    --with-mysqli \
+    --with-openssl \
+    --with-pcre-regex \
+    --with-png-dir \
+    --with-zlib \
+    --without-sqlite
+
+# Install
+RUN make && make install
+
+# Uninstall autoconf2.13 after compilation.
+RUN apt-get remove -y autoconf2.13
+
+# Clean up
+RUN rm -rf /tmp/* /var/tmp/*
+
+# Get out of /tmp
+WORKDIR /
 
 # nginx config
 RUN sed -i -e"s/keepalive_timeout\s*65/keepalive_timeout 2/" /etc/nginx/nginx.conf
