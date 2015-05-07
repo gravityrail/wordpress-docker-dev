@@ -38,6 +38,10 @@ RUN apt-get update \
         libpng12-dev \
         libxml2-dev \
         pkg-config \
+        git-core \
+        python-setuptools \
+        wget \
+        mysql-client \
         make \
         patch \
         xmlstarlet \
@@ -45,7 +49,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ADD src/ /tmp
-# WORKDIR /tmp
 RUN gunzip /tmp/*.gz && tar xf /tmp/php-5.2.16.tar -C /tmp
 WORKDIR /tmp/php-5.2.16
 
@@ -56,8 +59,12 @@ RUN patch -p1 -i ../php-5.2.16-fpm-0.5.14.diff && \
     patch -p1 -i ../debian_patches_disable_SSLv2_for_openssl_1_0_0.patch
 
 # Configure
+# Force enable running as root
+RUN echo "#define I_REALLY_WANT_ROOT_PHP 1" | cat - sapi/cgi/fpm/fpm_unix.c > /tmp/fpm_unix_patched.c && mv /tmp/fpm_unix_patched.c sapi/cgi/fpm/fpm_unix.c
+
 RUN ./buildconf --force
 
+# the "chmod" here is a workaround this issue: https://github.com/docker/docker/issues/9547
 RUN chmod a+x ./libevent/configure ./libevent/depcomp ./libevent/install-sh ./libevent/missing && ./configure \
     --enable-fastcgi \
     --enable-fpm \
@@ -65,8 +72,8 @@ RUN chmod a+x ./libevent/configure ./libevent/depcomp ./libevent/install-sh ./li
     --enable-sockets \
     --with-config-file-path=/etc/php5 \
     --with-curl \
-    --with-fpm-conf=/etc/php5/php-fpm.conf \
-    --with-fpm-log=/var/log/php/php_errors.log \
+    --with-fpm-conf=/etc/php5/fpm/php-fpm.conf \
+    --with-fpm-log=/var/log/php5-fpm.log \
     --with-fpm-pid=/var/run/php/php-fpm.pid \
     --with-gd \
     --with-gettext \
@@ -77,16 +84,21 @@ RUN chmod a+x ./libevent/configure ./libevent/depcomp ./libevent/install-sh ./li
     --with-mysql-sock \
     --with-mysqli \
     --with-openssl \
+    --with-fpm-user=root \
+    --with-fpm-group=root \
     --with-pcre-regex \
     --with-png-dir \
     --with-zlib \
     --without-sqlite
 
-# patch to add -lcrypto
+# patch Makefile to add "-lssl -lcrypto" to default libs
 RUN sed -i '/EXTRA_LIBS = /s|$| -lssl -lcrypto|' Makefile
 
 # Install
 RUN make && make install
+
+# Install default PHP configuration
+RUN cp php.ini-recommended /etc/php5/fpm/php.ini
 
 # Uninstall autoconf2.13 after compilation.
 RUN apt-get remove -y autoconf2.13
@@ -107,12 +119,11 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 RUN sed -i -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" /etc/php5/fpm/php.ini
 RUN sed -i -e "s/upload_max_filesize\s*=\s*2M/upload_max_filesize = 100M/g" /etc/php5/fpm/php.ini
 RUN sed -i -e "s/post_max_size\s*=\s*8M/post_max_size = 100M/g" /etc/php5/fpm/php.ini
-RUN sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g" /etc/php5/fpm/php-fpm.conf
-RUN sed -i -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" /etc/php5/fpm/pool.d/www.conf
-RUN sed -i -e "s/user\s*=\s*www-data/user = root/g" /etc/php5/fpm/pool.d/www.conf
-RUN sed -i -e "s/group\s*=\s*www-data/group = root/g" /etc/php5/fpm/pool.d/www.conf
-RUN sed -i -e "s/listen.owner\s*=\s*www-data/listen.owner = root/g" /etc/php5/fpm/pool.d/www.conf
-RUN find /etc/php5/cli/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {} \;
+RUN sed -i -e "s/\"daemonize\">yes/\"daemonize\">no/g" /etc/php5/fpm/php-fpm.conf
+RUN sed -i -e "s/\"owner\"></\"owner\">root</g" /etc/php5/fpm/php-fpm.conf
+RUN sed -i -e "s/\"group\"></\"group\">root</g" /etc/php5/fpm/php-fpm.conf
+RUN sed -i -e "s/\"listen_address\">127.0.0.1:9000/\"listen_address\">\/var\/run\/php5-fpm.sock/g" /etc/php5/fpm/php-fpm.conf
+# RUN find /etc/php5/cli/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {} \;
 
 # nginx site conf
 ADD ./nginx-site.conf /etc/nginx/sites-available/default
@@ -124,7 +135,9 @@ ADD ./supervisord.conf /etc/supervisord.conf
 
 # install wp-cli
 RUN wget https://github.com/wp-cli/builds/raw/gh-pages/deb/php-wpcli_0.17.1_all.deb
-RUN dpkg -i php-wpcli_0.17.1_all.deb
+RUN dpkg --force-all -i php-wpcli_0.17.1_all.deb
+# this is necessary so that our dependencies aren't left in a messy state
+RUN apt-get -f -y install
 
 # install wp-cli server command
 RUN mkdir -p ~/.wp-cli/commands
